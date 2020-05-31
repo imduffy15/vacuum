@@ -33,9 +33,9 @@ function cleanup_and_exit() {
         exit 0
     else
         echo "Cleaning up"
-        if mountpoint -q "$IMG_DIR"; then
-            umount_image
-        fi
+        # if mountpoint -q "$IMG_DIR"; then
+        #     umount_image
+        # fi
         rm -rf "$FW_TMPDIR"
         exit $1
     fi
@@ -176,9 +176,11 @@ if [ $EUID -ne 0 ]; then
     cleanup_and_exit 1
 fi
 
+IS_MAC=false
 if [[ $OSTYPE == darwin* ]]; then
-    echo "Does not work on OSX. Fuse-ext2 is broken and does not work well."
-    cleanup_and_exit 1
+    # Mac OSX
+    IS_MAC=true
+    echo "Running on a Mac, adjusting commands accordingly"
 fi
 
 CCRYPT="$(type -p ccrypt)"
@@ -222,7 +224,16 @@ if [ -n "$RESIZE_ROOT_FS" ]; then
     resize2fs "${FW_DIR}/disk.img" $RESIZE_ROOT_FS
 fi
 
-mount -o loop "${FW_DIR}/disk.img" "$IMG_DIR"
+if [ "$IS_MAC" = true ]; then
+    # FUSE-EXT2="$(type -p fuse-ext2)"
+    # if [ ! -x "$FUSE-EXT2" ]; then
+    #     echo "fuse-ext2 not found! Please install it from https://github.com/alperakcan/fuse-ext2"
+    #     cleanup_and_exit 1
+    # fi
+    fuse-ext2 "${FW_DIR}/disk.img" "$IMG_DIR" -o rw+
+else
+    mount -o loop "${FW_DIR}/disk.img" "$IMG_DIR"
+fi
 
 if [ $UNPACK_AND_MOUNT -eq 1 ]; then
     echo "Image mounted to $IMG_DIR"
@@ -263,7 +274,7 @@ sed -i -E 's/iptables/true    /' "${IMG_DIR}/opt/rockrobo/watchdog/WatchDoge"
 custom_function
 
 echo "+ Discard unused blocks"
-fstrim "$IMG_DIR"
+# fstrim "$IMG_DIR"
 
 umount_image
 

@@ -1,0 +1,41 @@
+#!/bin/sh
+
+load() {
+    curtime=`cat /proc/uptime | awk -F ' ' '{print $1}'`
+    echo "[$curtime] start librespot-daemon"
+    start-stop-daemon -S -b -q -m -p /var/run/librespot-daemon.pid -x /usr/local/bin/librespot-daemon.sh
+}
+
+unload() {
+    echo "stopping librespot" >/dev/kmsg
+    start-stop-daemon -K -q -p /var/run/librespot-daemon.pid
+    killall -9 librespot
+}
+
+status() {
+    if [ ! -f /var/run/librespot-daemon.pid -o -z "$(ps | grep `cat /var/run/librespot-daemon.pid` | grep -v grep)" ]; then
+        echo "librespot seems stopped"
+    else
+        echo "librespot seems started"
+    fi
+}
+
+case "$1" in
+    start)
+        load
+        ;;
+    stop)
+        unload
+        ;;
+    restart)
+        unload
+        load
+        ;;
+    status)
+        status
+        ;;
+    *)
+        echo "$0 <start/stop/restart/status>"
+        ;;
+esac
+

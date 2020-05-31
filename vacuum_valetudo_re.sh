@@ -10,7 +10,7 @@ if [ ! -r "$1" ]; then
 fi
 
 ./builder_vacuum.sh     --run-custom-script=ALL \
-                        --timezone=Europe/Berlin \
+                        --timezone=Europe/Dublin \
                         --ntpserver=pool.ntp.org \
                         --root-pass=cleaner \
                         --custom-user=cleaner \
@@ -24,13 +24,13 @@ fi
                         --replace-adbd \
                         --enable-appproxy-patcher \
                         --valetudo-re-path=../Valetudo_RE \
-                        --valetudo-re-nodeps \
                         --replace-miio \
                         --enable-dns-catcher \
                         --enable-addon-sox \
                         --enable-random-phrases \
                         --random-phrases-cron="*/2 * * * *" \
                         --enable-local-ota \
-                        --resize-root-fs=522240 \
                         --custom-dropbear \
+                        --enable-librespot \
+                        --resize-root-fs=522240 \
                         -f "$1"
